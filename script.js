@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
         navToggle.setAttribute('aria-expanded', 'false');
       });
     });
+
   }
 
   /* ---------- Sticky header shadow on scroll ---------- */
@@ -54,43 +55,48 @@ document.addEventListener('DOMContentLoaded', function () {
      CONTACT FORM — opens a pre-filled email to
      ansari0mantasha786@gmail.com with everything the person typed.
      ========================================================= */
-  var form = document.getElementById('contactForm');
-  var note = document.getElementById('formNote');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
+var form = document.getElementById('contactForm');
+var note = document.getElementById('formNote');
+if (form) {
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
-      var name = document.getElementById('cName').value.trim();
-      var business = document.getElementById('cBusiness').value.trim();
-      var phone = document.getElementById('cPhone').value.trim();
-      var email = document.getElementById('cEmail').value.trim();
-      var type = document.getElementById('cType').value;
-      var need = document.getElementById('cNeed').value;
-      var message = document.getElementById('cMessage').value.trim();
+    var name = document.getElementById('cName').value.trim();
+    var business = document.getElementById('cBusiness').value.trim();
+    var phone = document.getElementById('cPhone').value.trim();
+    var email = document.getElementById('cEmail').value.trim();
+    var type = document.getElementById('cType').value;
+    var need = document.getElementById('cNeed').value;
+    var message = document.getElementById('cMessage').value.trim();
 
-      var subject = `New enquiry — ${business} (${type})`;
-      var body =
-        `New enquiry from the TechWithMe website:\n\n` +
-        `Name: ${name}\n` +
-        `Business Name: ${business}\n` +
-        `Phone / WhatsApp: ${phone}\n` +
-        (email ? `Email: ${email}\n` : '') +
-        `Business Type: ${type}\n` +
-        `What they need: ${need}\n` +
-        `Message: ${message}`;
+    try {
+      await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: `New enquiry — ${business} (${type})`,
+          Name: name,
+          'Business Name': business,
+          'Phone / WhatsApp': phone,
+          Email: email || 'Not provided',
+          'Business Type': type,
+          'What they need': need,
+          Message: message
+        })
+      });
+    } catch (err) {
+      console.error('Email delivery failed:', err);
+    }
 
-      var mailLink = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailLink;
-
-      if (note) {
-        note.textContent = `Thanks, ${name}! We've opened your email app with your enquiry ready to send to ${CONTACT_EMAIL} — hit send there and we'll get back to you soon.`;
-      }
-      form.reset();
-    });
-  }
+    if (note) {
+      note.textContent = `Thanks, ${name}! Your enquiry has been sent to ${CONTACT_EMAIL} — we'll get back to you soon.`;
+    }
+    form.reset();
+  });
+}
 
 });
